@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         REGISTRY = "docker.io"
-        IMAGE_NAME = "your-dockerhub-username/adpush"
+        IMAGE_NAME = "ishanwalchale/Poe1"
         DOCKERHUB_CREDENTIALS = "dockerhub-creds"
     }
 
@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/yourusername/adpush.git'
+                    url: 'https://github.com/IshanWalchale/Poe1.git'
             }
         }
 
