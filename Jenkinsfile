@@ -15,28 +15,20 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+       stage('Build Docker Image') {
             steps {
-                script {
-                    GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    IMAGE_TAG = "${GIT_COMMIT_SHORT}"
-                    sh """
-                        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                    """
-                }
+                bat 'docker build -t %DOCKER_IMAGE% .'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                script {
-                    docker.withRegistry("https://${REGISTRY}", "${DOCKERHUB_CREDENTIALS}") {
-                        sh """
-                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                            docker push ${IMAGE_NAME}:latest
-                        """
-                    }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat '''
+                    docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                    docker tag %DOCKER_IMAGE% %DOCKER_USER%/%DOCKER_IMAGE%:latest
+                    docker push %DOCKER_USER%/%DOCKER_IMAGE%:latest
+                    '''
                 }
             }
         }
