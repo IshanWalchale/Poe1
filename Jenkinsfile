@@ -2,22 +2,23 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = "docker.io"
-        IMAGE_NAME = "ishanwalchale/Poe1"
-        DOCKERHUB_CREDENTIALS = "dockerhub-creds"
+        DOCKER_IMAGE = "poe1-app"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/IshanWalchale/Poe1.git'
+                git branch: 'main', url: 'https://github.com/IshanWalchale/Poe1.git'
             }
         }
 
-       stage('Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
-                bat 'docker build -t %DOCKER_IMAGE% .'
+                bat '''
+                echo Building Docker image: %DOCKER_IMAGE%
+                docker build -t %DOCKER_IMAGE% .
+                '''
             }
         }
 
@@ -25,8 +26,11 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat '''
+                    echo Logging in to Docker Hub...
                     docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                    echo Tagging image...
                     docker tag %DOCKER_IMAGE% %DOCKER_USER%/%DOCKER_IMAGE%:latest
+                    echo Pushing image to Docker Hub...
                     docker push %DOCKER_USER%/%DOCKER_IMAGE%:latest
                     '''
                 }
@@ -36,10 +40,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Docker image ${IMAGE_NAME}:${IMAGE_TAG} built and pushed successfully!"
+            echo '✅ Build and push successful!'
         }
         failure {
-            echo "❌ Build failed!"
+            echo '❌ Build failed!'
         }
     }
 }
